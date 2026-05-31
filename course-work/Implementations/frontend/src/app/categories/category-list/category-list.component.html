@@ -1,0 +1,56 @@
+<div class="cat-page">
+  <div class="cat-page-hd">
+    <h2 class="cat-page-title">Categories</h2>
+    <a *ngIf="isAdmin" routerLink="/categories/new" class="admin-btn-new">+ New Category</a>
+  </div>
+
+  <div class="cat-cuisine-grid">
+    <div *ngFor="let c of categories; let idx = index" class="cat-cuisine-card">
+      <a
+        [routerLink]="['/categories', c.id]"
+        class="cat-cui-hero"
+        [style.backgroundImage]="c.imageUrl ? 'url(' + c.imageUrl + ')' : 'none'"
+        [style.backgroundColor]="!c.imageUrl ? colorFor(idx) : null"
+      >
+        <div class="cat-cui-hero-overlay">
+          <h3 class="cat-cui-name">{{ c.name }}</h3>
+          <div class="cat-cui-count">
+            {{ recipesFor(c).length }} {{ recipesFor(c).length === 1 ? 'RECIPE' : 'RECIPES' }}
+          </div>
+        </div>
+
+        <div
+          *ngIf="isAdmin"
+          class="cat-cui-admin"
+          (click)="$event.preventDefault(); $event.stopPropagation()"
+        >
+          <a [routerLink]="['/categories', c.id, 'edit']" class="cat-card-edit">Edit</a>
+          <button class="cat-card-del" (click)="delete(c.id)">Delete</button>
+        </div>
+      </a>
+
+      <div class="cat-cui-body">
+        <p *ngIf="c.description" class="cat-cui-desc">{{ c.description }}</p>
+
+        <div *ngIf="recipesFor(c).length > 0">
+          <div class="cat-cui-rule"></div>
+          <ul class="cat-cui-recipes">
+            <li *ngFor="let r of recipesFor(c).slice(0, 3)" class="cat-cui-recipe-row">
+              <a [routerLink]="['/recipes', r.id]" class="cat-cui-recipe-name">{{ r.name }}</a>
+              <span class="cat-cui-recipe-time">{{ totalTime(r) }} min</span>
+            </li>
+          </ul>
+          <div *ngIf="recipesFor(c).length > 3" class="cat-cui-more">
+            + {{ recipesFor(c).length - 3 }} more
+          </div>
+        </div>
+
+        <div *ngIf="recipesFor(c).length === 0" class="cat-cui-empty">No recipes yet</div>
+      </div>
+    </div>
+
+    <div *ngIf="categories.length === 0" class="admin-empty" style="grid-column: 1/-1">
+      No categories yet.
+    </div>
+  </div>
+</div>

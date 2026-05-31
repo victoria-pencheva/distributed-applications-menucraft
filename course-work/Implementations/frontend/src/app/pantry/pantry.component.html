@@ -1,0 +1,254 @@
+<div *ngIf="loading" class="py-loading">Loading…</div>
+<div class="py-layout" *ngIf="!loading">
+  <aside class="py-sidebar">
+    <div class="py-add-section">
+      <div class="py-search-wrap">
+        <input
+          class="py-search-input"
+          placeholder="Search ingredients to add…"
+          [(ngModel)]="ingredientSearch"
+          (focus)="showDrop = true"
+          (input)="showDrop = true; selectedIngredientId = null"
+          (blur)="showDrop = false"
+        />
+        <div
+          *ngIf="showDrop && filteredIngredients.length > 0 && !selectedIngredientId"
+          class="py-drop"
+        >
+          <button
+            *ngFor="let i of filteredIngredients"
+            class="py-drop-item"
+            (mousedown)="$event.preventDefault()"
+            (click)="selectIngredient(i)"
+          >
+            {{ i.name }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="py-pantry-eyebrow">
+      IN YOUR PANTRY
+      <span class="py-pills-count">{{ items.length }}</span>
+    </div>
+
+    <div *ngIf="items.length === 0" class="py-pills-empty">
+      Nothing yet — search above to add ingredients.
+    </div>
+    <button *ngIf="items.length > 0" class="py-btn-clear-all" (click)="clearAll()">
+      Clear pantry
+    </button>
+
+    <div *ngFor="let g of GROUPS" class="py-cat-section">
+      <button class="py-cat-header" (click)="toggleGroup(g)">
+        <span class="py-cat-title">{{ g.label }}</span>
+        <span class="py-cat-count" *ngIf="groupItems(g).length > 0">{{
+          groupItems(g).length
+        }}</span>
+        <span class="py-cat-toggle" [class.py-cat-toggle-open]="!collapsed[g.label]">›</span>
+      </button>
+
+      <div class="py-cat-body" *ngIf="!collapsed[g.label]">
+        <div class="py-pills-grid" *ngIf="groupItems(g).length > 0">
+          <span
+            *ngFor="let item of groupItems(g)"
+            class="py-pill"
+            [class.py-pill-active]="incrementingId === item.id"
+          >
+            {{ item.ingredientName }}
+            <button class="py-pill-x" (click)="remove(item)">×</button>
+          </span>
+        </div>
+        <div *ngIf="groupItems(g).length === 0" class="py-cat-empty">Nothing here yet</div>
+
+        <div class="py-cat-add">
+          <div class="py-search-wrap">
+            <input
+              class="py-cat-search-input"
+              [placeholder]="'Add to ' + g.label + '…'"
+              [(ngModel)]="catSearch[g.label]"
+              (focus)="catShowDrop[g.label] = true"
+              (input)="catShowDrop[g.label] = true"
+              (blur)="catShowDrop[g.label] = false"
+            />
+            <div
+              *ngIf="catShowDrop[g.label] && catFilteredIngredients(g).length > 0"
+              class="py-drop"
+            >
+              <button
+                *ngFor="let i of catFilteredIngredients(g)"
+                class="py-drop-item"
+                (mousedown)="$event.preventDefault()"
+                (click)="catQuickAdd(i, g)"
+              >
+                {{ i.name }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="py-main">
+    <div class="py-stats-row" *ngIf="recipesWithCoverage.length > 0">
+      <div class="py-stat-pill py-stat-ready">
+        <span class="py-stat-num">{{ readyNow.length }}</span>
+        <span class="py-stat-label">READY NOW</span>
+      </div>
+      <div class="py-stat-pill py-stat-few">
+        <span class="py-stat-num">{{ missingFew.length }}</span>
+        <span class="py-stat-label">MISSING 1–2</span>
+      </div>
+      <div class="py-stat-pill py-stat-stretch">
+        <span class="py-stat-num">{{ stretch.length }}</span>
+        <span class="py-stat-label">STRETCH</span>
+      </div>
+    </div>
+
+    <section *ngIf="readyNow.length > 0" class="py-tier">
+      <div class="py-tier-hd">
+        <div class="py-tier-dot py-dot-ready"></div>
+        <span class="py-tier-label py-tier-label-ready">READY NOW</span>
+        <span class="py-tier-count"
+          >{{ readyNow.length }} recipe{{ readyNow.length !== 1 ? 's' : '' }}</span
+        >
+      </div>
+      <div class="py-recipe-grid">
+        <a
+          *ngFor="let rc of readyNow"
+          class="py-rec-card"
+          [routerLink]="['/recipes', rc.recipe.id]"
+        >
+          <div class="py-rec-img-wrap">
+            <img
+              *ngIf="rc.recipe.imageUrl"
+              [src]="rc.recipe.imageUrl"
+              [alt]="rc.recipe.name"
+              class="py-rec-img"
+            />
+            <div *ngIf="!rc.recipe.imageUrl" class="py-rec-img py-rec-placeholder"></div>
+          </div>
+          <div class="py-rec-body">
+            <div class="py-rec-meta">
+              <span *ngIf="rc.recipe.cuisine">{{ rc.recipe.cuisine }} · </span>
+              {{ rc.recipe.prepTime + rc.recipe.cookTime }} MIN
+              <span *ngIf="rc.recipe.caloriesPerServing">
+                · {{ rc.recipe.caloriesPerServing | number: '1.0-0' }} KCAL</span
+              >
+            </div>
+            <div class="py-rec-title">{{ rc.recipe.name }}</div>
+            <div class="py-rec-bar-row">
+              <div class="py-rec-bar">
+                <div class="py-rec-bar-fill" style="width: 100%"></div>
+              </div>
+              <span class="py-rec-fraction">{{ rc.pantryCount }}/{{ rc.total }}</span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <section *ngIf="missingFew.length > 0" class="py-tier">
+      <div class="py-tier-hd">
+        <div class="py-tier-dot py-dot-few"></div>
+        <span class="py-tier-label py-tier-label-few">MISSING 1–2</span>
+        <span class="py-tier-count"
+          >{{ missingFew.length }} recipe{{ missingFew.length !== 1 ? 's' : '' }}</span
+        >
+      </div>
+      <div class="py-recipe-grid">
+        <a
+          *ngFor="let rc of missingFew"
+          class="py-rec-card"
+          [routerLink]="['/recipes', rc.recipe.id]"
+        >
+          <div class="py-rec-img-wrap">
+            <img
+              *ngIf="rc.recipe.imageUrl"
+              [src]="rc.recipe.imageUrl"
+              [alt]="rc.recipe.name"
+              class="py-rec-img"
+            />
+            <div *ngIf="!rc.recipe.imageUrl" class="py-rec-img py-rec-placeholder"></div>
+          </div>
+          <div class="py-rec-body">
+            <div class="py-rec-meta">
+              <span *ngIf="rc.recipe.cuisine">{{ rc.recipe.cuisine }} · </span>
+              {{ rc.recipe.prepTime + rc.recipe.cookTime }} MIN
+              <span *ngIf="rc.recipe.caloriesPerServing">
+                · {{ rc.recipe.caloriesPerServing | number: '1.0-0' }} KCAL</span
+              >
+            </div>
+            <div class="py-rec-title">{{ rc.recipe.name }}</div>
+            <div class="py-rec-bar-row">
+              <div class="py-rec-bar">
+                <div class="py-rec-bar-fill py-rec-bar-few" [style.width.%]="rc.pct"></div>
+              </div>
+              <span class="py-rec-fraction">{{ rc.pantryCount }}/{{ rc.total }}</span>
+            </div>
+            <div class="py-rec-need">
+              <span class="py-need-label">NEED:</span>
+              <span *ngFor="let m of rc.missingIngredients" class="py-need-chip">{{
+                m.ingredientName
+              }}</span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <section *ngIf="stretch.length > 0" class="py-tier">
+      <div class="py-tier-hd">
+        <div class="py-tier-dot py-dot-stretch"></div>
+        <span class="py-tier-label py-tier-label-stretch">STRETCH</span>
+        <span class="py-tier-count"
+          >{{ stretch.length }} recipe{{ stretch.length !== 1 ? 's' : '' }}</span
+        >
+      </div>
+      <div class="py-recipe-grid">
+        <a
+          *ngFor="let rc of stretch"
+          class="py-rec-card py-rec-card-dim"
+          [routerLink]="['/recipes', rc.recipe.id]"
+        >
+          <div class="py-rec-img-wrap">
+            <img
+              *ngIf="rc.recipe.imageUrl"
+              [src]="rc.recipe.imageUrl"
+              [alt]="rc.recipe.name"
+              class="py-rec-img"
+            />
+            <div *ngIf="!rc.recipe.imageUrl" class="py-rec-img py-rec-placeholder"></div>
+          </div>
+          <div class="py-rec-body">
+            <div class="py-rec-meta">
+              <span *ngIf="rc.recipe.cuisine">{{ rc.recipe.cuisine }} · </span>
+              {{ rc.recipe.prepTime + rc.recipe.cookTime }} MIN
+            </div>
+            <div class="py-rec-title">{{ rc.recipe.name }}</div>
+            <div class="py-rec-bar-row">
+              <div class="py-rec-bar">
+                <div class="py-rec-bar-fill py-rec-bar-stretch" [style.width.%]="rc.pct"></div>
+              </div>
+              <span class="py-rec-fraction">{{ rc.pantryCount }}/{{ rc.total }}</span>
+            </div>
+            <div class="py-rec-need">
+              <span class="py-need-label">NEED:</span>
+              <span
+                *ngFor="let m of rc.missingIngredients.slice(0, 4)"
+                class="py-need-chip py-need-chip-stretch"
+              >
+                {{ m.ingredientName }}
+              </span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <div *ngIf="items.length === 0" class="py-main-empty">
+      <p>Add ingredients to your pantry to see what you can cook.</p>
+    </div>
+  </main>
+</div>

@@ -1,0 +1,147 @@
+<div class="rf-form-solo">
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="rf-section">
+      <div class="rf-eyebrow">01 · IDENTITY</div>
+      <h2 class="rf-section-title">The basics</h2>
+      <hr class="rf-rule" />
+
+      <div class="rf-eyebrow-page">{{ editId ? 'Edit ingredient' : 'New ingredient' }}</div>
+      <input class="rf-input-hero" formControlName="name" placeholder="Ingredient name" />
+      <div
+        *ngIf="form.get('name')?.touched && form.get('name')?.hasError('required')"
+        class="rf-error-inline"
+      >
+        Name required
+      </div>
+
+      <div class="rf-field" style="margin-top: 16px">
+        <label class="rf-label">DESCRIPTION</label>
+        <textarea
+          class="rf-textarea"
+          formControlName="description"
+          rows="3"
+          placeholder="Brief notes — origin, flavour, common uses…"
+        ></textarea>
+      </div>
+    </div>
+
+    <div class="rf-section">
+      <div class="rf-eyebrow">02 · DETAILS</div>
+      <h2 class="rf-section-title">Classification</h2>
+      <hr class="rf-rule" />
+
+      <div class="rf-field">
+        <label class="rf-label">DEFAULT UNIT</label>
+        <div class="rf-toggle-group">
+          <button
+            type="button"
+            class="rf-toggle"
+            [class.rf-toggle-on]="form.get('defaultUnit')?.value === 'g'"
+            (click)="setUnit('g')"
+          >
+            g (grams)
+          </button>
+          <button
+            type="button"
+            class="rf-toggle"
+            [class.rf-toggle-on]="form.get('defaultUnit')?.value === 'kg'"
+            (click)="setUnit('kg')"
+          >
+            kg
+          </button>
+          <button
+            type="button"
+            class="rf-toggle"
+            [class.rf-toggle-on]="form.get('defaultUnit')?.value === 'pcs'"
+            (click)="setUnit('pcs')"
+          >
+            pcs (pieces)
+          </button>
+        </div>
+      </div>
+
+      <div class="rf-field" style="margin-top: 16px">
+        <label class="rf-label">CATEGORY</label>
+        <select class="rf-select" formControlName="category">
+          <option [ngValue]="null">None</option>
+          <option *ngFor="let c of categories" [value]="c">{{ c }}</option>
+        </select>
+      </div>
+
+      <div class="rf-field" style="margin-top: 16px">
+        <label class="rf-label">CONTAINS GLUTEN</label>
+        <div class="rf-toggle-group">
+          <button
+            type="button"
+            class="rf-toggle"
+            [class.rf-toggle-on]="!form.get('containsGluten')?.value"
+            (click)="toggleGluten()"
+          >
+            No
+          </button>
+          <button
+            type="button"
+            class="rf-toggle"
+            [class.rf-toggle-on]="form.get('containsGluten')?.value"
+            (click)="toggleGluten()"
+          >
+            Yes
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="rf-section">
+      <div class="rf-eyebrow">03 · NUTRITION</div>
+      <h2 class="rf-section-title">Per 100 g (or per piece)</h2>
+      <hr class="rf-rule" />
+
+      <div class="rf-row-3">
+        <div class="rf-field">
+          <label class="rf-label">
+            CALORIES (kcal)
+            <span *ngIf="calculatedCalories !== null" class="rf-cal-hint">
+              · macro formula → {{ calculatedCalories }}
+            </span>
+          </label>
+          <input
+            class="rf-input"
+            type="number"
+            formControlName="calories"
+            min="0"
+            placeholder="0"
+            [class.rf-input-warn]="caloriesWarning"
+          />
+          <span *ngIf="caloriesWarning" class="rf-warning">⚠ {{ caloriesWarning }}</span>
+        </div>
+        <div class="rf-field">
+          <label class="rf-label">PROTEIN (g)</label>
+          <input class="rf-input" type="number" formControlName="protein" min="0" placeholder="0" />
+        </div>
+        <div class="rf-field">
+          <label class="rf-label">CARBS (g)</label>
+          <input class="rf-input" type="number" formControlName="carbs" min="0" placeholder="0" />
+        </div>
+      </div>
+      <div class="rf-row-3" style="margin-top: 12px">
+        <div class="rf-field">
+          <label class="rf-label">FAT (g)</label>
+          <input class="rf-input" type="number" formControlName="fat" min="0" placeholder="0" />
+        </div>
+        <div class="rf-field">
+          <label class="rf-label">FIBER (g)</label>
+          <input class="rf-input" type="number" formControlName="fiber" min="0" placeholder="0" />
+        </div>
+        <div></div>
+      </div>
+    </div>
+
+    <div class="rf-actions">
+      <p *ngIf="error" class="rf-error">{{ error }}</p>
+      <button class="rf-btn-primary" type="submit" [disabled]="form.invalid">
+        {{ editId ? 'Save changes' : 'Save ingredient' }}
+      </button>
+      <a class="rf-btn-ghost" routerLink="/ingredients">Cancel</a>
+    </div>
+  </form>
+</div>

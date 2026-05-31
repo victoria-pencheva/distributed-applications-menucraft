@@ -1,0 +1,135 @@
+<div *ngIf="recipe" class="rp-scrim" (click)="close.emit()">
+  <div class="rp-panel" (click)="$event.stopPropagation()">
+    <button class="rp-close" (click)="close.emit()">✕</button>
+
+    <div
+      class="rp-hero"
+      [style.backgroundImage]="recipe.imageUrl ? 'url(' + recipe.imageUrl + ')' : 'none'"
+      [style.backgroundColor]="recipe.imageUrl ? '' : placeholderColor()"
+    >
+      <div class="rp-hero-overlay">
+        <div class="rp-hero-eyebrow">
+          <span *ngIf="recipe.cuisine">{{ recipe.cuisine }}</span>
+          <span *ngIf="recipe.cuisine && recipe.categoryName"> · </span>
+          <span *ngIf="recipe.categoryName">{{ recipe.categoryName }}</span>
+          <span *ngIf="recipe.difficulty"> · {{ recipe.difficulty }}</span>
+        </div>
+        <h2 class="rp-hero-title">{{ recipe.name }}</h2>
+        <div class="rp-hero-by">
+          by <strong>{{ recipe.username }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="rp-body">
+      <p *ngIf="recipe.blurb || recipe.description" class="rp-blurb">
+        {{ recipe.blurb || recipe.description }}
+      </p>
+
+      <div class="rp-stats">
+        <div class="rp-stat">
+          <span class="rp-stat-val">{{ totalTime }} min</span>
+          <span class="rp-stat-label">TOTAL TIME</span>
+        </div>
+        <div class="rp-stat-sep"></div>
+        <div class="rp-stat" *ngIf="recipe.caloriesPerServing">
+          <span class="rp-stat-val">{{ recipe.caloriesPerServing | number: '1.0-0' }}</span>
+          <span class="rp-stat-label">KCAL / SERVING</span>
+        </div>
+        <div class="rp-stat-sep" *ngIf="recipe.caloriesPerServing"></div>
+        <div class="rp-stat" *ngIf="recipe.protein">
+          <span class="rp-stat-val">{{ recipe.protein }}g</span>
+          <span class="rp-stat-label">PROTEIN</span>
+        </div>
+        <div class="rp-stat-sep" *ngIf="recipe.protein"></div>
+        <div class="rp-stat">
+          <span class="rp-stat-val">{{ recipe.servings }}</span>
+          <span class="rp-stat-label">SERVINGS</span>
+        </div>
+        <ng-container *ngIf="recipe.avgRating">
+          <div class="rp-stat-sep"></div>
+          <div class="rp-stat">
+            <span class="rp-stat-val">★ {{ recipe.avgRating | number: '1.1-1' }}</span>
+            <span class="rp-stat-label">{{ recipe.ratingCount }} RATINGS</span>
+          </div>
+        </ng-container>
+      </div>
+
+      <div class="rp-cols">
+        <div class="rp-steps-col" *ngIf="recipe.steps?.length">
+          <div class="rp-col-eyebrow">A GLIMPSE OF THE METHOD</div>
+          <ol class="rp-steps">
+            <li *ngFor="let s of visibleSteps; let i = index" class="rp-step">
+              <span class="rp-step-n">{{ i + 1 }}</span>
+              <span class="rp-step-txt">{{ s.description }}</span>
+            </li>
+          </ol>
+          <div *ngIf="hiddenStepCount > 0" class="rp-more-steps">
+            {{ hiddenStepCount }} more steps · open the full recipe to follow along
+          </div>
+        </div>
+
+        <div class="rp-ing-col" *ngIf="recipe.ingredients?.length">
+          <div class="rp-ing-hd">
+            <div class="rp-col-eyebrow">INGREDIENTS</div>
+            <div *ngIf="pantryCount > 0" class="rp-pantry-badge">
+              {{ pantryCount }}/{{ recipe.ingredients.length }} IN PANTRY · {{ pantryPct }}%
+            </div>
+          </div>
+          <ul class="rp-ing-list">
+            <li
+              *ngFor="let i of recipe.ingredients"
+              class="rp-ing"
+              [class.rp-ing-pantry]="isInPantry(i.ingredientId)"
+            >
+              <span class="rp-ing-dot"></span>
+              <span class="rp-ing-name">{{ i.ingredientName }}</span>
+            </li>
+          </ul>
+          <div class="rp-tags" *ngIf="recipe.tags?.length">
+            <span *ngFor="let t of recipe.tags" class="rp-tag">{{ t }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rp-footer">
+      <button class="rp-btn-open" (click)="openFull.emit(recipe)">Open full recipe ›</button>
+      <button class="rp-btn-plan" (click)="showPicker = true">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <rect x="3" y="4" width="18" height="18" rx="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
+        </svg>
+        {{ planAdded ? 'Added ✓' : 'Add to meal plan' }}
+      </button>
+      <a
+        *ngIf="canEdit"
+        class="rp-btn-edit"
+        [routerLink]="['/recipes', recipe!.id, 'edit']"
+        (click)="close.emit()"
+        >Edit</a
+      >
+      <button *ngIf="canDelete" class="rp-btn-delete" (click)="deleteRecipe()">Delete</button>
+    </div>
+    <div *ngIf="deleteError" style="padding: 0 28px 12px; font-size: 12px; color: var(--rust)">
+      {{ deleteError }}
+    </div>
+  </div>
+</div>
+
+<app-meal-plan-picker
+  *ngIf="showPicker && recipe"
+  [recipe]="recipe"
+  (close)="showPicker = false"
+  (added)="onPickerAdded()"
+>
+</app-meal-plan-picker>

@@ -1,0 +1,82 @@
+<div *ngIf="ingredient" class="det-wrap">
+  <div class="det-breadcrumb">
+    <a routerLink="/ingredients">Ingredients</a>
+    <span>›</span>
+    <span>{{ ingredient.name }}</span>
+  </div>
+
+  <div class="det-header">
+    <div class="det-header-left">
+      <div *ngIf="ingredient.category" class="det-eyebrow">{{ ingredient.category }}</div>
+      <h1 class="det-title">{{ ingredient.name }}</h1>
+      <p *ngIf="ingredient.description" class="det-desc">{{ ingredient.description }}</p>
+    </div>
+    <div class="det-actions">
+      <a routerLink="/ingredients" class="btn-ghost">← Back</a>
+      <ng-container *ngIf="isAdmin">
+        <a [routerLink]="['/ingredients', ingredient.id, 'edit']" class="admin-btn-edit">Edit</a>
+        <button class="admin-btn-del" (click)="delete()">Delete</button>
+      </ng-container>
+    </div>
+  </div>
+
+  <div class="det-grid">
+    <div class="det-card">
+      <span class="det-card-label">CALORIES</span>
+      <span class="det-card-val">{{ ingredient.calories ?? '—' }} <small>kcal / 100g</small></span>
+    </div>
+    <div class="det-card">
+      <span class="det-card-label">PROTEIN</span>
+      <span class="det-card-val"
+        >{{ ingredient.protein != null ? ingredient.protein : '—' }}
+        <small *ngIf="ingredient.protein != null">g</small></span
+      >
+    </div>
+    <div class="det-card">
+      <span class="det-card-label">CARBS</span>
+      <span class="det-card-val"
+        >{{ ingredient.carbs != null ? ingredient.carbs : '—' }}
+        <small *ngIf="ingredient.carbs != null">g</small></span
+      >
+    </div>
+    <div class="det-card">
+      <span class="det-card-label">FAT</span>
+      <span class="det-card-val"
+        >{{ ingredient.fat != null ? ingredient.fat : '—' }}
+        <small *ngIf="ingredient.fat != null">g</small></span
+      >
+    </div>
+    <div class="det-card">
+      <span class="det-card-label">FIBER</span>
+      <span class="det-card-val"
+        >{{ ingredient.fiber != null ? ingredient.fiber : '—' }}
+        <small *ngIf="ingredient.fiber != null">g</small></span
+      >
+    </div>
+    <div class="det-card">
+      <span class="det-card-label">DEFAULT UNIT</span>
+      <span class="det-card-val">{{ ingredient.defaultUnit }}</span>
+    </div>
+    <div class="det-card">
+      <span class="det-card-label">CATEGORY</span>
+      <span class="det-card-val">{{ ingredient.category || '—' }}</span>
+    </div>
+    <div class="det-card">
+      <span class="det-card-label">CONTAINS GLUTEN</span>
+      <span
+        class="det-card-val det-badge"
+        [class.det-badge-yes]="ingredient.containsGluten"
+        [class.det-badge-no]="!ingredient.containsGluten"
+      >
+        {{ ingredient.containsGluten ? 'Yes' : 'No' }}
+      </span>
+    </div>
+  </div>
+
+  <div class="det-timestamps">
+    <span>Added {{ ingredient.createdAt | date: 'mediumDate' }}</span>
+    <span *ngIf="ingredient.updatedAt !== ingredient.createdAt"
+      >· Updated {{ ingredient.updatedAt | date: 'mediumDate' }}</span
+    >
+  </div>
+</div>

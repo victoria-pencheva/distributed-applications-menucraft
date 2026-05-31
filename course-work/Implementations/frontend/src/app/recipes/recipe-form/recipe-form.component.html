@@ -1,0 +1,322 @@
+<div class="rf-layout">
+  <div class="rf-form-col">
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="rf-section">
+        <div class="rf-eyebrow">01 · IDENTITY</div>
+        <h2 class="rf-section-title">The headline</h2>
+        <hr class="rf-rule" />
+
+        <input
+          class="rf-input-hero"
+          formControlName="name"
+          placeholder="What's this dish called?"
+        />
+        <div
+          *ngIf="form.get('name')?.touched && form.get('name')?.hasError('required')"
+          class="rf-error-inline"
+        >
+          Name required
+        </div>
+
+        <div class="rf-field">
+          <label class="rf-label">SHORT BLURB</label>
+          <textarea
+            class="rf-textarea"
+            formControlName="blurb"
+            rows="3"
+            placeholder="Smoky, sweet, impossibly tender — broiled until the glaze caramelizes..."
+          ></textarea>
+          <div class="rf-hint">
+            {{ form.get('blurb')?.value?.length || 0 }}/180 · A single bright sentence that makes
+            someone want to cook this.
+          </div>
+        </div>
+      </div>
+
+      <div class="rf-section">
+        <div class="rf-eyebrow">02 · HOW IT COOKS</div>
+        <h2 class="rf-section-title">Details</h2>
+        <hr class="rf-rule" />
+
+        <div class="rf-field">
+          <label class="rf-label">COURSE</label>
+          <select class="rf-select" formControlName="categoryId">
+            <option [ngValue]="null">None</option>
+            <option *ngFor="let c of categories" [ngValue]="c.id">{{ c.name }}</option>
+          </select>
+        </div>
+
+        <div class="rf-field">
+          <label class="rf-label">DIFFICULTY</label>
+          <div class="rf-toggle-group">
+            <button
+              type="button"
+              class="rf-toggle"
+              [class.rf-toggle-on]="form.get('difficulty')?.value === 'EASY'"
+              (click)="setDifficulty('EASY')"
+            >
+              Easy
+            </button>
+            <button
+              type="button"
+              class="rf-toggle"
+              [class.rf-toggle-on]="form.get('difficulty')?.value === 'MEDIUM'"
+              (click)="setDifficulty('MEDIUM')"
+            >
+              Medium
+            </button>
+            <button
+              type="button"
+              class="rf-toggle"
+              [class.rf-toggle-on]="form.get('difficulty')?.value === 'HARD'"
+              (click)="setDifficulty('HARD')"
+            >
+              Hard
+            </button>
+          </div>
+        </div>
+
+        <div class="rf-row-3">
+          <div class="rf-field">
+            <label class="rf-label">PREP TIME</label>
+            <div class="rf-suffix-wrap">
+              <input class="rf-input" type="number" formControlName="prepTime" min="0" />
+              <span class="rf-suffix">min</span>
+            </div>
+          </div>
+          <div class="rf-field">
+            <label class="rf-label">COOK TIME</label>
+            <div class="rf-suffix-wrap">
+              <input class="rf-input" type="number" formControlName="cookTime" min="0" />
+              <span class="rf-suffix">min</span>
+            </div>
+          </div>
+          <div class="rf-field">
+            <label class="rf-label">YIELD</label>
+            <div class="rf-suffix-wrap">
+              <input class="rf-input" type="number" formControlName="servings" min="1" />
+              <span class="rf-suffix">srv</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rf-section">
+        <div class="rf-eyebrow">03 · INGREDIENTS</div>
+        <h2 class="rf-section-title">What goes in</h2>
+        <hr class="rf-rule" />
+
+        <div class="rf-ing-add">
+          <div class="rf-ing-search-wrap">
+            <input
+              class="rf-input rf-ing-search"
+              placeholder="Search ingredient…"
+              [(ngModel)]="ingredientSearch"
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="searchIngredients()"
+            />
+
+            <ul *ngIf="filteredIngredients.length" class="rf-ing-dropdown">
+              <li
+                *ngFor="let ing of filteredIngredients"
+                class="rf-ing-option"
+                (mousedown)="selectIngredient(ing)"
+              >
+                {{ ing.name }}
+                <span class="rf-ing-cal">{{ ing.defaultUnit }} · {{ ing.calories }} kcal</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="rf-suffix-wrap rf-ing-qty">
+            <input
+              class="rf-input"
+              type="number"
+              min="1"
+              [(ngModel)]="ingredientQty"
+              [ngModelOptions]="{ standalone: true }"
+              placeholder="100"
+            />
+            <span class="rf-suffix">g</span>
+          </div>
+
+          <span class="rf-ing-unit-badge">{{ selectedIngredient?.defaultUnit || '—' }}</span>
+
+          <button
+            type="button"
+            class="rf-btn-add-ing"
+            [disabled]="!selectedIngredient || ingredientQty <= 0"
+            (click)="addIngredient()"
+          >
+            Add
+          </button>
+        </div>
+
+        <div *ngIf="draftIngredients.length" class="rf-ing-list">
+          <div *ngFor="let d of draftIngredients; let i = index" class="rf-ing-row">
+            <span class="rf-ing-name">{{ d.ingredientName }}</span>
+            <span class="rf-ing-qty-label">{{ d.quantity }}{{ d.unit ? ' ' + d.unit : 'g' }}</span>
+            <span class="rf-ing-kcal"
+              >{{ (d.caloriesPer100g * d.quantity) / 100 | number: '1.0-0' }} kcal</span
+            >
+            <button
+              type="button"
+              class="rf-ing-remove"
+              (click)="removeIngredient(i)"
+              title="Remove"
+            >
+              ×
+            </button>
+          </div>
+
+          <div class="rf-ing-total">
+            <span
+              >Total · {{ draftIngredients.length }} ingredient{{
+                draftIngredients.length !== 1 ? 's' : ''
+              }}</span
+            >
+            <span *ngIf="previewCalories > 0"
+              >≈ {{ previewCalories | number: '1.0-0' }} kcal per serving</span
+            >
+          </div>
+        </div>
+
+        <div *ngIf="!draftIngredients.length" class="rf-hint" style="margin-top: 8px">
+          No ingredients added yet. Search above to add.
+        </div>
+      </div>
+
+      <div class="rf-section">
+        <div class="rf-eyebrow">04 · INSTRUCTIONS</div>
+        <h2 class="rf-section-title">Step by step</h2>
+        <hr class="rf-rule" />
+
+        <div *ngFor="let step of draftSteps; let i = index" class="rf-step-row">
+          <span class="rf-step-num">{{ i + 1 }}</span>
+          <textarea
+            class="rf-textarea rf-step-area"
+            rows="2"
+            [placeholder]="'Describe step ' + (i + 1) + '…'"
+            [(ngModel)]="step.description"
+            [ngModelOptions]="{ standalone: true }"
+          ></textarea>
+          <button type="button" class="rf-step-remove" (click)="removeStep(i)" title="Remove step">
+            ×
+          </button>
+        </div>
+
+        <button type="button" class="rf-btn-ghost-sm" (click)="addStep()">+ Add step</button>
+
+        <div *ngIf="!draftSteps.length" class="rf-hint" style="margin-top: 4px">
+          No steps yet. Click "+ Add step" to begin.
+        </div>
+      </div>
+
+      <div class="rf-section">
+        <div class="rf-eyebrow">05 · HERO IMAGE</div>
+        <h2 class="rf-section-title">Photo</h2>
+        <hr class="rf-rule" />
+
+        <div class="rf-upload" (click)="fileInput.click()">
+          <img
+            *ngIf="previewUrl || form.get('imageUrl')?.value"
+            [src]="previewUrl || form.get('imageUrl')?.value"
+            class="rf-upload-img"
+            alt=""
+          />
+          <div *ngIf="!previewUrl && !form.get('imageUrl')?.value" class="rf-upload-empty">
+            <svg
+              width="32"
+              height="32"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+              />
+            </svg>
+            <span>{{ uploading ? 'Uploading…' : 'Click to upload photo' }}</span>
+          </div>
+          <input
+            #fileInput
+            type="file"
+            accept="image/*"
+            style="display: none"
+            (change)="onFileSelected($event)"
+          />
+        </div>
+        <button
+          *ngIf="previewUrl || form.get('imageUrl')?.value"
+          type="button"
+          class="rf-btn-ghost-sm"
+          style="margin-top: 8px"
+          (click)="clearImage(); $event.stopPropagation()"
+        >
+          Remove image
+        </button>
+      </div>
+
+      <div class="rf-actions">
+        <p *ngIf="error" class="rf-error">{{ error }}</p>
+        <button class="rf-btn-primary" type="submit" [disabled]="form.invalid || uploading">
+          {{ uploading ? 'Uploading…' : editId ? 'Save changes' : 'Publish recipe' }}
+        </button>
+        <a class="rf-btn-ghost" routerLink="/recipes">Cancel</a>
+      </div>
+    </form>
+  </div>
+
+  <aside class="rf-preview">
+    <div class="rf-preview-hd">
+      <span class="rf-preview-label">LIVE PREVIEW</span>
+      <span class="rf-preview-sub">HOW THIS HERO WILL LOOK</span>
+    </div>
+
+    <div class="rf-preview-card">
+      <div
+        class="rf-preview-hero"
+        [style.background-image]="
+          previewUrl || form.get('imageUrl')?.value
+            ? 'url(' + (previewUrl || form.get('imageUrl')?.value) + ')'
+            : null
+        "
+      >
+        <div class="rf-preview-hero-overlay">
+          <div class="rf-preview-meta">
+            <span *ngIf="categoryName">{{ categoryName }} · </span
+            >{{ form.get('difficulty')?.value || 'EASY' }}
+          </div>
+          <div class="rf-preview-name">{{ form.get('name')?.value || 'Untitled recipe' }}</div>
+          <div class="rf-preview-blurb">
+            {{ form.get('blurb')?.value || 'Your short description will appear here.' }}
+          </div>
+          <div class="rf-preview-stats">
+            {{ totalTime }} min
+            <span *ngIf="previewCalories > 0"> · {{ previewCalories | number: '1.0-0' }} kcal</span>
+            <span *ngIf="draftIngredients.length">
+              · {{ draftIngredients.length }} ingredients</span
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="draftIngredients.length" class="rf-preview-ings">
+      <div class="rf-preview-ings-title">INGREDIENTS</div>
+      <div *ngFor="let d of draftIngredients" class="rf-preview-ing-row">
+        <span>{{ d.ingredientName }}</span>
+        <span>{{ d.quantity }}{{ d.unit ? ' ' + d.unit : 'g' }}</span>
+      </div>
+    </div>
+
+    <div *ngIf="draftSteps.length" class="rf-preview-steps">
+      <div class="rf-preview-steps-title">STEPS</div>
+      <div *ngFor="let s of draftSteps; let i = index" class="rf-preview-step-row">
+        <span class="rf-preview-step-num">{{ i + 1 }}</span>
+        <span class="rf-preview-step-text">{{ s.description || '—' }}</span>
+      </div>
+    </div>
+  </aside>
+</div>

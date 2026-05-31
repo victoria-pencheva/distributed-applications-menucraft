@@ -1,0 +1,31 @@
+<div style="max-width: 400px; margin: 80px auto; padding: 24px">
+  <h2>Register</h2>
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <mat-form-field style="width: 100%">
+      <mat-label>Username</mat-label>
+      <input matInput formControlName="username" />
+      <mat-error *ngIf="form.get('username')?.hasError('minlength')">Min 3 characters</mat-error>
+      <mat-error *ngIf="form.get('username')?.hasError('usernameTaken')"
+        >Username already taken</mat-error
+      >
+    </mat-form-field>
+    <mat-form-field style="width: 100%">
+      <mat-label>Email</mat-label>
+      <input matInput type="email" formControlName="email" />
+      <mat-error *ngIf="form.get('email')?.hasError('email')">Valid email required</mat-error>
+      <mat-error *ngIf="form.get('email')?.hasError('emailTaken')"
+        >Email already registered</mat-error
+      >
+    </mat-form-field>
+    <mat-form-field style="width: 100%">
+      <mat-label>Password</mat-label>
+      <input matInput type="password" formControlName="password" />
+      <mat-error *ngIf="form.get('password')?.hasError('pattern')">Must be 8+ characters with uppercase, lowercase, digit, and special character (&#64;$!%*?&amp;)</mat-error>
+    </mat-form-field>
+    <p *ngIf="error" style="color: red">{{ error }}</p>
+    <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
+      Register
+    </button>
+    <a routerLink="/login" style="margin-left: 16px">Login</a>
+  </form>
+</div>

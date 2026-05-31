@@ -1,0 +1,150 @@
+<div *ngIf="loading" class="sl-loading">Loading…</div>
+<div class="sl-page" *ngIf="!loading">
+  <div class="sl-stats-bar" *ngIf="totalCount > 0">
+    <div class="sl-stat-col">
+      <span class="sl-stat-num">{{ totalCount }}</span>
+      <span class="sl-stat-label">TOTAL ITEMS</span>
+    </div>
+    <div class="sl-stat-sep"></div>
+    <div class="sl-stat-col">
+      <span class="sl-stat-num">{{ pantryCount }}</span>
+      <span class="sl-stat-label">COVERED BY PANTRY</span>
+    </div>
+    <div class="sl-stat-sep"></div>
+    <div class="sl-stat-col">
+      <span class="sl-stat-num">{{ toBuyCount }}</span>
+      <span class="sl-stat-label">STILL TO BUY</span>
+    </div>
+
+    <div class="sl-progress-row">
+      <span class="sl-progress-label">{{ checkedCount }} CHECKED OFF</span>
+      <div class="sl-progress-track">
+        <div class="sl-progress-fill" [style.width.%]="checkedPct"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sl-body">
+    <main class="sl-main">
+      <label class="sl-hide-pantry" *ngIf="pantryCount > 0">
+        <input type="checkbox" [(ngModel)]="hidePantry" />
+        Hide items already in pantry
+      </label>
+
+      <div *ngIf="totalCount === 0" class="sl-empty">
+        <p>List is empty. Add items manually or generate from your meal plan.</p>
+      </div>
+
+      <div *ngFor="let g of GROUPS">
+        <div *ngIf="hasAnyItems(g)" class="sl-cat-block">
+          <button class="sl-cat-hd" (click)="toggleGroup(g.label)">
+            <span class="sl-cat-label">{{ g.label }}</span>
+            <span class="sl-cat-count">
+              {{ groupUnchecked(g).length + groupChecked(g).length }}
+            </span>
+            <span class="sl-cat-toggle" [class.sl-cat-toggle-open]="!collapsed[g.label]">›</span>
+          </button>
+
+          <div *ngIf="!collapsed[g.label]">
+            <div *ngFor="let item of groupUnchecked(g)" class="sl-item-row" (click)="toggle(item)">
+              <span class="sl-cb-box"></span>
+              <span class="sl-item-name">{{ displayName(item) }}</span>
+              <span class="sl-item-qty" *ngIf="item.quantity || item.unit">
+                {{ item.quantity }} {{ item.unit }}
+              </span>
+              <button class="sl-item-del" (click)="$event.stopPropagation(); remove(item)">
+                ✕
+              </button>
+            </div>
+
+            <div
+              *ngFor="let item of groupChecked(g)"
+              class="sl-item-row sl-item-done"
+              (click)="toggle(item)"
+            >
+              <span class="sl-cb-box sl-cb-checked">✓</span>
+              <span class="sl-item-name">{{ displayName(item) }}</span>
+              <span class="sl-item-qty" *ngIf="item.quantity || item.unit">
+                {{ item.quantity }} {{ item.unit }}
+              </span>
+              <button class="sl-item-del" (click)="$event.stopPropagation(); remove(item)">
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="checkedCount > 0" class="sl-clear-row">
+        <button class="sl-btn-ghost" (click)="clearChecked()">
+          Clear {{ checkedCount }} checked item{{ checkedCount !== 1 ? 's' : '' }}
+        </button>
+      </div>
+    </main>
+
+    <aside class="sl-sidebar">
+      <div class="sl-sidebar-card">
+        <div class="sl-sidebar-eyebrow">FROM MEAL PLAN</div>
+        <p class="sl-sidebar-hint">
+          Generate your list automatically from this week's planned meals.
+        </p>
+        <input class="sl-week-input" type="week" [(ngModel)]="weekStart" />
+        <button class="sl-btn-generate" (click)="generate()" [disabled]="generating">
+          {{ generating ? 'Generating…' : '+ Generate list' }}
+        </button>
+      </div>
+
+      <div class="sl-sidebar-card" *ngIf="totalCount > 0">
+        <div class="sl-sidebar-eyebrow">MANAGE LIST</div>
+        <button class="sl-btn-clear" (click)="clearAll()">Clear entire list</button>
+      </div>
+
+      <div class="sl-sidebar-card">
+        <div class="sl-sidebar-eyebrow">ADD MANUALLY</div>
+        <div class="sl-add-row">
+          <div class="py-search-wrap">
+            <input
+              class="sl-input sl-input-name"
+              placeholder="Search ingredient…"
+              [(ngModel)]="manualSearch"
+              (focus)="manualShowDrop = true"
+              (input)="manualShowDrop = true; manualSelected = null"
+              (blur)="manualShowDrop = false"
+            />
+            <div *ngIf="manualShowDrop && manualFiltered.length > 0" class="py-drop">
+              <button
+                *ngFor="let i of manualFiltered"
+                class="py-drop-item"
+                (mousedown)="$event.preventDefault()"
+                (click)="selectManualIngredient(i)"
+              >
+                {{ i.name }}
+              </button>
+            </div>
+          </div>
+          <div class="sl-add-bottom" *ngIf="manualSelected">
+            <input
+              class="sl-input sl-input-qty"
+              type="number"
+              min="0.01"
+              step="0.1"
+              placeholder="Qty"
+              [(ngModel)]="addQty"
+            />
+            <select class="sl-input sl-input-unit" [(ngModel)]="addUnit">
+              <option value="g">g</option>
+              <option value="kg">kg</option>
+              <option value="pcs">pcs</option>
+            </select>
+            <button class="sl-btn-add" (click)="addManual()">Add</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sl-tip">
+        <strong>Tip.</strong> Click any item to check it off. Checked items stay visible so you can
+        track progress.
+      </div>
+    </aside>
+  </div>
+</div>

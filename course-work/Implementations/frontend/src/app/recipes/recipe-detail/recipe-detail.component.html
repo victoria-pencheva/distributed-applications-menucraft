@@ -1,0 +1,211 @@
+<div *ngIf="recipe" class="rd-wrap">
+  <div
+    class="rd-hero"
+    [style.backgroundImage]="recipe.imageUrl ? 'url(' + recipe.imageUrl + ')' : 'none'"
+  >
+    <div class="rd-hero-overlay">
+      <div class="rd-hero-inner">
+        <div class="rd-breadcrumb">
+          <button class="rd-back-btn" (click)="back()">← Back</button>
+          <span class="rd-breadcrumb-sep">|</span>
+          <a routerLink="/recipes">All Recipes</a>
+          <span>›</span>
+          <span *ngIf="recipe.categoryName">{{ recipe.categoryName }}</span>
+          <span *ngIf="recipe.categoryName">›</span>
+          <span>{{ recipe.name }}</span>
+        </div>
+
+        <div *ngIf="recipe.tags?.length || recipe.cuisine" class="rd-tags">
+          <span *ngIf="recipe.cuisine" class="rd-tag">{{ recipe.cuisine }}</span>
+          <span *ngFor="let t of recipe.tags" class="rd-tag">{{ t }}</span>
+        </div>
+
+        <h1 class="rd-title">{{ recipe.name }}</h1>
+
+        <p *ngIf="recipe.blurb" class="rd-blurb">{{ recipe.blurb }}</p>
+
+        <div class="rd-meta">
+          <div class="rd-meta-item">
+            <span class="rd-meta-label">RECIPE BY</span>
+            <span class="rd-meta-val">{{ recipe.username }}</span>
+          </div>
+          <div class="rd-meta-sep"></div>
+          <div class="rd-meta-item">
+            <span class="rd-meta-label">TOTAL TIME</span>
+            <span class="rd-meta-val">{{ recipe.prepTime + recipe.cookTime }} min</span>
+          </div>
+          <div class="rd-meta-sep"></div>
+          <div class="rd-meta-item">
+            <span class="rd-meta-label">DIFFICULTY</span>
+            <span class="rd-meta-val">{{ recipe.difficulty }}</span>
+          </div>
+          <div class="rd-meta-sep"></div>
+          <div class="rd-meta-item">
+            <span class="rd-meta-label">SERVINGS</span>
+            <span class="rd-meta-val">{{ recipe.servings }}</span>
+          </div>
+          <div class="rd-meta-sep"></div>
+          <div class="rd-meta-item">
+            <span class="rd-meta-label">RATING</span>
+            <span class="rd-meta-val rd-rating-val">
+              <span class="rd-star-avg"
+                >★ {{ recipe.avgRating ? (recipe.avgRating | number: '1.1-1') : '—' }}</span
+              >
+              <span *ngIf="recipe.ratingCount" class="rd-rating-count">{{
+                recipe.ratingCount
+              }}</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="rd-your-rating">
+          <span class="rd-your-label">YOUR RATING</span>
+          <app-star-rating [current]="recipe.myRating" (rated)="onRate($event)"></app-star-rating>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rd-body">
+    <div class="rd-main">
+      <blockquote *ngIf="!recipe.blurb && recipe.description" class="rd-quote">
+        <p>{{ recipe.description }}</p>
+      </blockquote>
+
+      <section class="rd-section" *ngIf="recipe.steps?.length">
+        <div class="rd-section-hd">
+          <span class="rd-section-eyebrow">METHOD</span>
+          <h2 class="rd-section-title">Step by Step</h2>
+        </div>
+        <ol class="rd-steps">
+          <li *ngFor="let s of recipe.steps; let i = index" class="rd-step">
+            <span class="rd-step-num">{{ stepLabel(i) }}</span>
+            <p class="rd-step-text">{{ s.description }}</p>
+          </li>
+        </ol>
+      </section>
+    </div>
+
+    <aside class="rd-aside">
+      <div
+        class="rd-card rd-actions-card"
+        *ngIf="isAdmin || (currentUser$ | async)?.username === recipe.username"
+      >
+        <button class="rd-action-btn" [routerLink]="['/recipes', recipe.id, 'edit']">
+          Edit Recipe
+        </button>
+        <button class="rd-action-btn rd-action-btn-danger" (click)="delete()">Delete</button>
+        <p *ngIf="deleteError" class="rd-delete-error">{{ deleteError }}</p>
+      </div>
+
+      <div class="rd-card">
+        <div class="rd-card-hd">
+          <span class="rd-aside-label">SERVINGS</span>
+          <div class="rd-servings-ctrl">
+            <button
+              class="rd-sv-btn"
+              (click)="adjustServings(-1)"
+              [disabled]="displayServings <= 1"
+            >
+              −
+            </button>
+            <span class="rd-sv-val">{{ displayServings }}</span>
+            <button class="rd-sv-btn" (click)="adjustServings(1)">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="rd-card" *ngIf="recipe.protein || recipe.carbs || recipe.fat">
+        <div class="rd-donut-wrap">
+          <svg class="rd-donut" viewBox="0 0 140 140">
+            <circle class="rd-donut-bg" cx="70" cy="70" r="54" />
+            <circle
+              class="rd-donut-seg"
+              cx="70"
+              cy="70"
+              r="54"
+              stroke="var(--amber)"
+              [attr.stroke-dasharray]="carbsDash() + ' ' + (339 - carbsDash())"
+              [attr.stroke-dashoffset]="339 - proteinDash() + 84.75"
+            />
+            <circle
+              class="rd-donut-seg"
+              cx="70"
+              cy="70"
+              r="54"
+              stroke="var(--rust)"
+              [attr.stroke-dasharray]="fatDash() + ' ' + (339 - fatDash())"
+              [attr.stroke-dashoffset]="339 - proteinDash() - carbsDash() + 84.75"
+            />
+            <circle
+              class="rd-donut-seg"
+              cx="70"
+              cy="70"
+              r="54"
+              stroke="var(--ink-4)"
+              [attr.stroke-dasharray]="fiberDash() + ' ' + (339 - fiberDash())"
+              [attr.stroke-dashoffset]="339 - proteinDash() - carbsDash() - fatDash() + 84.75"
+            />
+            <circle
+              class="rd-donut-seg"
+              cx="70"
+              cy="70"
+              r="54"
+              stroke="var(--accent)"
+              [attr.stroke-dasharray]="proteinDash() + ' ' + (339 - proteinDash())"
+              stroke-dashoffset="84.75"
+            />
+            <text x="70" y="66" class="rd-donut-kcal">
+              {{ scaledCalories() | number: '1.0-0' }}
+            </text>
+            <text x="70" y="82" class="rd-donut-unit">kcal</text>
+          </svg>
+          <div class="rd-donut-legend">
+            <div class="rd-legend-row">
+              <span class="rd-swatch" style="background: var(--accent)"></span>
+              <span>Protein</span><b>{{ scaledMacro(recipe.protein) }}g</b>
+            </div>
+            <div class="rd-legend-row">
+              <span class="rd-swatch" style="background: var(--amber)"></span>
+              <span>Carbs</span><b>{{ scaledMacro(recipe.carbs) }}g</b>
+            </div>
+            <div class="rd-legend-row">
+              <span class="rd-swatch" style="background: var(--rust)"></span>
+              <span>Fat</span><b>{{ scaledMacro(recipe.fat) }}g</b>
+            </div>
+            <div *ngIf="recipe.fiber" class="rd-legend-row">
+              <span class="rd-swatch" style="background: var(--ink-4)"></span>
+              <span>Fiber</span><b>{{ scaledMacro(recipe.fiber) }}g</b>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rd-card" *ngIf="!recipe.protein && !recipe.carbs && !recipe.fat">
+        <div class="rd-cal-simple">
+          <span class="rd-cal-num">{{ scaledCalories() | number: '1.0-0' }}</span>
+          <span class="rd-cal-unit">kcal per serving</span>
+        </div>
+      </div>
+
+      <div class="rd-card">
+        <div class="rd-card-hd">
+          <h3 class="rd-aside-title">Ingredients</h3>
+          <span class="rd-aside-sub">for {{ displayServings }}</span>
+        </div>
+        <ul class="rd-ing-list">
+          <li
+            *ngFor="let i of recipe.ingredients"
+            class="rd-ing"
+            [class.rd-ing-done]="checkedIngredients.has(i.ingredientId)"
+            (click)="toggleIngredient(i.ingredientId)"
+          >
+            <span class="rd-ing-cb">{{ checkedIngredients.has(i.ingredientId) ? '✓' : '' }}</span>
+            <span class="rd-ing-qty">{{ scaledQty(i.quantity) }} {{ i.unit }}</span>
+            <span class="rd-ing-name">{{ i.ingredientName }}</span>
+          </li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+</div>

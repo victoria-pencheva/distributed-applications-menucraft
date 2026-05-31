@@ -1,0 +1,98 @@
+<div class="layout">
+  <app-recipe-sidebar
+    [class.open]="showMobileSidebar"
+    class="sidebar"
+    [allIngredients]="allIngredients"
+    [filters]="filters"
+    (filtersChange)="onFiltersChange($event)"
+  >
+  </app-recipe-sidebar>
+
+  <main class="main">
+    <div class="toolbar">
+      <button
+        *ngIf="isMobile$ | async"
+        class="btn-ghost"
+        style="font-size: 13px; padding: 6px 12px"
+        (click)="showMobileSidebar = !showMobileSidebar"
+      >
+        {{ showMobileSidebar ? 'Hide filters' : '☰ Filters' }}
+      </button>
+      <span class="toolbar-count">{{ totalElements }} recipes</span>
+      <a routerLink="/recipes/new" class="btn-new-recipe">+ New recipe</a>
+      <select
+        [(ngModel)]="sort"
+        (ngModelChange)="load(0)"
+        style="
+          padding: 6px 10px;
+          border: 1px solid var(--rule);
+          border-radius: var(--rad-sm);
+          font-size: 13px;
+          background: var(--paper);
+        "
+      >
+        <option value="new">Recently added</option>
+        <option value="quick">Quickest</option>
+        <option value="cal">Lowest calorie</option>
+      </select>
+      <button
+        class="btn-ghost"
+        [class.topnav-on]="view === 'grid'"
+        style="padding: 6px 10px"
+        (click)="view = 'grid'"
+      >
+        ▦
+      </button>
+      <button
+        class="btn-ghost"
+        [class.topnav-on]="view === 'list'"
+        style="padding: 6px 10px"
+        (click)="view = 'list'"
+      >
+        ☰
+      </button>
+    </div>
+
+    <div class="active-bar" *ngIf="activeChips.length">
+      <span *ngFor="let c of activeChips" class="chip">
+        {{ c.label }}
+        <button class="chip-remove" (click)="c.remove()">×</button>
+      </span>
+    </div>
+
+    <section [class]="'grid' + (view === 'list' ? ' grid-list' : '')">
+      <app-recipe-card
+        *ngFor="let r of displayedRecipes"
+        [recipe]="r"
+        [large]="view === 'list'"
+        (clicked)="openPreview($event)"
+      >
+      </app-recipe-card>
+    </section>
+
+    <div
+      *ngIf="displayedRecipes.length === 0"
+      style="text-align: center; padding: 48px; color: var(--ink-3)"
+    >
+      No recipes match your filters.
+    </div>
+
+    <app-pagination
+      *ngIf="totalPages > 1"
+      [currentPage]="currentPage"
+      [totalPages]="totalPages"
+      (pageChange)="load($event)"
+    >
+    </app-pagination>
+  </main>
+</div>
+
+<app-recipe-preview
+  [recipe]="previewRecipe"
+  [includedIngredientIds]="pantryIngredientIds"
+  [excludedIngredientIds]="filters.excludeIngredientIds"
+  (close)="closePreview()"
+  (openFull)="openFull($event)"
+  (deleted)="closePreview(); load(0)"
+>
+</app-recipe-preview>

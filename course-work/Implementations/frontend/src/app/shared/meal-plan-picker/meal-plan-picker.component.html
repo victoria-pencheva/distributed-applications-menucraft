@@ -1,0 +1,67 @@
+<div class="mpp-scrim" (click)="close.emit()">
+  <div class="mpp-panel" (click)="$event.stopPropagation()">
+    <div class="mpp-header">
+      <div class="mpp-eyebrow">ADD TO MEAL PLAN</div>
+      <h2 class="mpp-title">{{ recipe.name }}</h2>
+      <button class="mpp-close" (click)="close.emit()">✕</button>
+    </div>
+
+    <div class="mpp-week-nav">
+      <button class="mpp-week-btn" (click)="prevWeek()">‹</button>
+      <span class="mpp-week-label">Week of {{ weekLabel }}</span>
+      <button class="mpp-week-btn" (click)="nextWeek()">›</button>
+    </div>
+
+    <div class="mpp-grid">
+      <div class="mpp-col-headers">
+        <div class="mpp-day-spacer"></div>
+        <div class="mpp-meal-header" *ngFor="let m of mealTypes">
+          <span class="mpp-meal-dot">{{ m[0] }}</span>
+          {{ m }}
+        </div>
+      </div>
+
+      <div class="mpp-row" *ngFor="let day of days; let i = index">
+        <div class="mpp-day-cell">
+          <span class="mpp-day-name">{{ dayNames[i] }}</span>
+          <span class="mpp-day-num">{{ day.date.getDate() }}</span>
+          <span *ngIf="day.isToday" class="mpp-today-tag">TODAY</span>
+        </div>
+
+        <div
+          class="mpp-slot"
+          *ngFor="let m of mealTypes"
+          [class.mpp-slot-selected]="isSelected(day.dateStr, m)"
+          [class.mpp-slot-occupied]="getEntry(day.dateStr, m)"
+          (click)="selectSlot(day.dateStr, m)"
+        >
+          <ng-container *ngIf="getEntry(day.dateStr, m) as entry; else emptySlot">
+            <span class="mpp-slot-name">{{ entry.recipeName }}</span>
+            <span class="mpp-slot-replace">REPLACE</span>
+          </ng-container>
+          <ng-template #emptySlot>
+            <span class="mpp-slot-plus">+</span>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="error" class="mpp-error">{{ error }}</div>
+
+    <div class="mpp-footer">
+      <div class="mpp-servings">
+        <span class="mpp-servings-label">SERVINGS</span>
+        <button class="mpp-srv-btn" (click)="decServings()">−</button>
+        <span class="mpp-srv-val">{{ servings }}</span>
+        <button class="mpp-srv-btn" (click)="incServings()">+</button>
+        <span class="mpp-srv-hint">recipe makes {{ recipe.servings }}</span>
+      </div>
+      <div class="mpp-footer-actions">
+        <button class="mpp-btn-cancel" (click)="close.emit()">Cancel</button>
+        <button class="mpp-btn-confirm" [disabled]="!selectedDate" (click)="confirm()">
+          Pick a slot
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

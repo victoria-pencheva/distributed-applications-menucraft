@@ -1,0 +1,291 @@
+<div class="sb-head">
+  <div>
+    <div class="sb-eyebrow">Refine</div>
+    <h2 class="sb-title">Filters</h2>
+  </div>
+  <button *ngIf="activeCount > 0" class="sb-reset" (click)="reset()">
+    Reset all <span class="sb-badge">{{ activeCount }}</span>
+  </button>
+</div>
+
+<div class="sb-section">
+  <button class="sb-section-hd" (click)="open.include = !open.include">
+    <span>Include ingredients</span>
+    <span class="sb-row-right">
+      <span *ngIf="filters.includeIngredientIds.length" class="sb-badge">{{
+        filters.includeIngredientIds.length
+      }}</span>
+      <span class="sb-chevron" [class.open]="open.include">›</span>
+    </span>
+  </button>
+  <div class="sb-body" *ngIf="open.include">
+    <input
+      class="sb-search"
+      placeholder="Search ingredients…"
+      [(ngModel)]="includeSearch"
+      style="margin-bottom: 8px"
+    />
+    <div class="sb-tag-grid">
+      <button
+        *ngFor="let i of visibleInclude"
+        class="sb-tag sb-tag-include"
+        [class.active]="filters.includeIngredientIds.includes(i.id)"
+        (click)="toggleInclude(i)"
+      >
+        {{ i.name }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="sb-section">
+  <button class="sb-section-hd" (click)="open.exclude = !open.exclude">
+    <span>Exclude ingredients</span>
+    <span class="sb-row-right">
+      <span *ngIf="filters.excludeIngredientIds.length" class="sb-badge">{{
+        filters.excludeIngredientIds.length
+      }}</span>
+      <span class="sb-chevron" [class.open]="open.exclude">›</span>
+    </span>
+  </button>
+  <div class="sb-body" *ngIf="open.exclude">
+    <input
+      class="sb-search"
+      placeholder="Search ingredients…"
+      [(ngModel)]="excludeSearch"
+      style="margin-bottom: 8px"
+    />
+    <div class="sb-tag-grid">
+      <button
+        *ngFor="let i of visibleExclude"
+        class="sb-tag sb-tag-exclude"
+        [class.active]="filters.excludeIngredientIds.includes(i.id)"
+        (click)="toggleExclude(i)"
+      >
+        {{ i.name }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="sb-section">
+  <button class="sb-section-hd" (click)="open.dietary = !open.dietary">
+    <span>Dietary</span>
+    <span class="sb-row-right">
+      <span *ngIf="filters.tags.length" class="sb-badge">{{ filters.tags.length }}</span>
+      <span class="sb-chevron" [class.open]="open.dietary">›</span>
+    </span>
+  </button>
+  <div class="sb-body" *ngIf="open.dietary">
+    <div class="sb-tag-grid">
+      <button
+        *ngFor="let tag of dietaryTags"
+        class="sb-tag"
+        [class.active]="filters.tags.includes(tag)"
+        (click)="toggleTag(tag)"
+      >
+        {{ tag }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="sb-section">
+  <button class="sb-section-hd" (click)="open.cuisine = !open.cuisine">
+    <span>Cuisine</span>
+    <span class="sb-row-right">
+      <span *ngIf="filters.cuisine" class="sb-badge">1</span>
+      <span class="sb-chevron" [class.open]="open.cuisine">›</span>
+    </span>
+  </button>
+  <div class="sb-body" *ngIf="open.cuisine">
+    <div class="sb-tag-grid">
+      <button
+        *ngFor="let c of cuisines"
+        class="sb-tag"
+        [class.active]="filters.cuisine === c"
+        (click)="toggleCuisine(c)"
+      >
+        {{ c }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="sb-section">
+  <button class="sb-section-hd" (click)="open.time = !open.time">
+    <span>Cooking time</span>
+    <span class="sb-row-right">
+      <span *ngIf="filters.minPrepTime != null || filters.maxPrepTime != null" class="sb-badge"
+        >1</span
+      >
+      <span class="sb-chevron" [class.open]="open.time">›</span>
+    </span>
+  </button>
+  <div class="sb-body" *ngIf="open.time">
+    <div class="sb-time-label">{{ minTime }} – {{ maxTime }} min</div>
+    <mat-slider min="0" max="240" step="5" style="width: 100%">
+      <input matSliderStartThumb [(ngModel)]="minTime" (change)="onTimeChange()" />
+      <input matSliderEndThumb [(ngModel)]="maxTime" (change)="onTimeChange()" />
+    </mat-slider>
+    <div class="sb-presets">
+      <button class="sb-preset" (click)="setTimePreset(0, 20)">Under 20m</button>
+      <button class="sb-preset" (click)="setTimePreset(30, 60)">30–60m</button>
+      <button class="sb-preset" (click)="setTimePreset(60, 240)">Weekend</button>
+    </div>
+  </div>
+</div>
+
+<div class="sb-section">
+  <button class="sb-section-hd" (click)="open.difficulty = !open.difficulty">
+    <span>Difficulty</span>
+    <span class="sb-row-right">
+      <span *ngIf="filters.difficulty" class="sb-badge">1</span>
+      <span class="sb-chevron" [class.open]="open.difficulty">›</span>
+    </span>
+  </button>
+  <div class="sb-body" *ngIf="open.difficulty">
+    <div class="sb-diff-row">
+      <button
+        *ngFor="let d of difficulties"
+        class="sb-diff"
+        [class.active]="filters.difficulty === d"
+        (click)="toggleDifficulty(d)"
+      >
+        {{ d }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="sb-section">
+  <button class="sb-section-hd" (click)="open.calories = !open.calories">
+    <span>Calories</span>
+    <span class="sb-row-right">
+      <span *ngIf="filters.maxCalories" class="sb-badge">1</span>
+      <span class="sb-chevron" [class.open]="open.calories">›</span>
+    </span>
+  </button>
+  <div class="sb-body" *ngIf="open.calories">
+    <div class="sb-time-label">Up to {{ maxCal === 1500 ? '1500+' : maxCal }} kcal</div>
+    <mat-slider min="100" max="1500" step="50" style="width: 100%">
+      <input matSliderThumb [(ngModel)]="maxCal" (change)="onCalChange()" />
+    </mat-slider>
+    <div class="sb-presets">
+      <button
+        class="sb-preset"
+        [class.active-preset]="filters.maxCalories === 300"
+        (click)="setCalPreset(300)"
+      >
+        Under 300
+      </button>
+      <button
+        class="sb-preset"
+        [class.active-preset]="filters.maxCalories === 600"
+        (click)="setCalPreset(600)"
+      >
+        Under 600
+      </button>
+      <button
+        class="sb-preset"
+        [class.active-preset]="filters.maxCalories === 900"
+        (click)="setCalPreset(900)"
+      >
+        Under 900
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="sb-section">
+  <button class="sb-section-hd" (click)="open.macros = !open.macros">
+    <span>Macros</span>
+    <span class="sb-row-right">
+      <span *ngIf="filters.minProtein" class="sb-badge">1</span>
+      <span class="sb-chevron" [class.open]="open.macros">›</span>
+    </span>
+  </button>
+  <div class="sb-body" *ngIf="open.macros">
+    <div class="sb-time-label">Min protein: {{ minProt }}g</div>
+    <mat-slider min="0" max="60" step="5" style="width: 100%">
+      <input matSliderThumb [(ngModel)]="minProt" (change)="onProtChange()" />
+    </mat-slider>
+    <div class="sb-presets" style="margin-bottom: 10px">
+      <button
+        class="sb-preset"
+        [class.active-preset]="filters.minProtein === 15"
+        (click)="minProt = 15; onProtChange()"
+      >
+        15g+
+      </button>
+      <button
+        class="sb-preset"
+        [class.active-preset]="filters.minProtein === 25"
+        (click)="minProt = 25; onProtChange()"
+      >
+        25g+
+      </button>
+      <button
+        class="sb-preset"
+        [class.active-preset]="filters.minProtein === 40"
+        (click)="minProt = 40; onProtChange()"
+      >
+        40g+
+      </button>
+    </div>
+    <div class="sb-time-label">Max carbs: {{ maxCarbs === 150 ? '150+' : maxCarbs }}g</div>
+    <mat-slider min="10" max="150" step="5" style="width: 100%">
+      <input matSliderThumb [(ngModel)]="maxCarbs" (change)="onCarbsChange()" />
+    </mat-slider>
+    <div class="sb-presets" style="margin-bottom: 10px">
+      <button
+        class="sb-preset"
+        [class.active-preset]="filters.maxCarbs === 20"
+        (click)="maxCarbs = 20; onCarbsChange()"
+      >
+        Under 20g
+      </button>
+      <button
+        class="sb-preset"
+        [class.active-preset]="filters.maxCarbs === 50"
+        (click)="maxCarbs = 50; onCarbsChange()"
+      >
+        Under 50g
+      </button>
+      <button
+        class="sb-preset"
+        [class.active-preset]="filters.maxCarbs === 100"
+        (click)="maxCarbs = 100; onCarbsChange()"
+      >
+        Under 100g
+      </button>
+    </div>
+    <div class="sb-time-label">Max fat: {{ maxFat === 80 ? '80+' : maxFat }}g</div>
+    <mat-slider min="5" max="80" step="5" style="width: 100%">
+      <input matSliderThumb [(ngModel)]="maxFat" (change)="onFatChange()" />
+    </mat-slider>
+    <div class="sb-presets">
+      <button
+        class="sb-preset"
+        [class.active-preset]="filters.maxFat === 10"
+        (click)="maxFat = 10; onFatChange()"
+      >
+        Under 10g
+      </button>
+      <button
+        class="sb-preset"
+        [class.active-preset]="filters.maxFat === 25"
+        (click)="maxFat = 25; onFatChange()"
+      >
+        Under 25g
+      </button>
+      <button
+        class="sb-preset"
+        [class.active-preset]="filters.maxFat === 40"
+        (click)="maxFat = 40; onFatChange()"
+      >
+        Under 40g
+      </button>
+    </div>
+  </div>
+</div>

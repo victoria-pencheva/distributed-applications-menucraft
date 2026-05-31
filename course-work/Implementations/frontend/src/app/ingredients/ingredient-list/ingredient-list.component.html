@@ -1,0 +1,107 @@
+<div class="ing-page">
+  <div class="ing-page-hd">
+    <h2 class="ing-page-title">Ingredients</h2>
+    <a *ngIf="isAdmin" routerLink="/ingredients/new" class="admin-btn-new">+ New Ingredient</a>
+  </div>
+
+  <div class="ing-toolbar">
+    <div class="ing-search-wrap">
+      <svg
+        class="ing-search-icon"
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.35-4.35" />
+      </svg>
+      <input
+        class="ing-search"
+        [(ngModel)]="search"
+        (ngModelChange)="onSearchChange()"
+        placeholder="Search ingredients…"
+      />
+    </div>
+    <select
+      [(ngModel)]="sort"
+      (ngModelChange)="onSearchChange()"
+      style="
+        padding: 6px 10px;
+        border: 1px solid var(--rule);
+        border-radius: var(--rad-sm);
+        font-size: 13px;
+        background: var(--paper);
+      "
+    >
+      <option value="az">A–Z</option>
+      <option value="calories">Highest calorie</option>
+      <option value="pantry">In pantry first</option>
+    </select>
+  </div>
+
+  <div class="ing-cats">
+    <button
+      class="ing-cat-btn"
+      [class.ing-cat-on]="activeCategory === 'ALL'"
+      (click)="setCategory('ALL')"
+    >
+      All <span class="ing-cat-count">{{ allIngredients.length }}</span>
+    </button>
+    <button
+      *ngFor="let c of categories"
+      class="ing-cat-btn"
+      [class.ing-cat-on]="activeCategory === c.key"
+      [style.--cat-color]="catColor(c.key)"
+      (click)="setCategory(c.key)"
+    >
+      <span class="ing-cat-dot" [style.background]="catColor(c.key)"></span>
+      {{ c.label }} <span class="ing-cat-count">{{ c.count }}</span>
+    </button>
+  </div>
+
+  <div class="ing-grid">
+    <a
+      *ngFor="let i of paginated"
+      [routerLink]="['/ingredients', i.id]"
+      class="ing-card"
+      [class.ing-card-pantry]="pantryIds.has(i.id)"
+    >
+      <div class="ing-card-icon-wrap">
+        <div class="ing-card-icon-back" [style.background]="catColor(i.category)"></div>
+        <div class="ing-card-icon-front" [style.background]="catColor(i.category)"></div>
+      </div>
+
+      <div class="ing-card-body">
+        <div class="ing-card-name">{{ i.name }}</div>
+        <div class="ing-card-sub" *ngIf="i.calories != null">{{ i.calories }} kcal</div>
+        <div class="ing-card-sub ing-card-no-cal" *ngIf="i.calories == null">
+          {{ i.category ? catLabel(i.category) : '—' }}
+        </div>
+      </div>
+
+      <span *ngIf="pantryIds.has(i.id)" class="ing-card-check">✓</span>
+
+      <div
+        *ngIf="isAdmin"
+        class="ing-card-actions"
+        (click)="$event.preventDefault(); $event.stopPropagation()"
+      >
+        <a [routerLink]="['/ingredients', i.id, 'edit']" class="admin-btn-edit">Edit</a>
+        <button class="admin-btn-del" (click)="delete(i.id)">Delete</button>
+      </div>
+    </a>
+
+    <div *ngIf="paginated.length === 0" class="ing-empty">No ingredients match your search.</div>
+  </div>
+
+  <app-pagination
+    *ngIf="totalPages > 1"
+    [currentPage]="currentPage"
+    [totalPages]="totalPages"
+    (pageChange)="load($event)"
+  >
+  </app-pagination>
+</div>

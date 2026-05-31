@@ -1,0 +1,24 @@
+<div style="display: flex; gap: 4px; justify-content: center; align-items: center; margin: 16px 0">
+  <button mat-button [disabled]="currentPage === 0" (click)="pageChange.emit(currentPage - 1)">
+    Prev
+  </button>
+  <span class="pg-label" style="display: none; padding: 0 8px; font-size: 14px; color: var(--ink-2)"
+    >{{ currentPage + 1 }} / {{ totalPages }}</span
+  >
+  <button
+    mat-button
+    class="pg-num"
+    *ngFor="let p of pages"
+    [color]="p === currentPage ? 'primary' : ''"
+    (click)="pageChange.emit(p)"
+  >
+    {{ p + 1 }}
+  </button>
+  <button
+    mat-button
+    [disabled]="currentPage === totalPages - 1"
+    (click)="pageChange.emit(currentPage + 1)"
+  >
+    Next
+  </button>
+</div>

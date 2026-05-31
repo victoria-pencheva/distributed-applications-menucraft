@@ -1,0 +1,213 @@
+<div class="mp-layout">
+  <div class="mp-main">
+    <div class="mp-header">
+      <div>
+        <div class="mp-eyebrow">MEAL PLAN</div>
+        <h1 class="mp-week-title">{{ weekLabel }}</h1>
+      </div>
+      <div class="mp-nav">
+        <button class="mp-nav-btn" (click)="prevWeek()">‹</button>
+        <button class="mp-this-week" (click)="today()">THIS WEEK</button>
+        <button class="mp-nav-btn" (click)="nextWeek()">›</button>
+      </div>
+    </div>
+
+    <div class="mp-divider"></div>
+
+    <div class="mp-stats-bar">
+      <div class="mp-stat">
+        <span class="mp-stat-big">{{ weeklyStats.filledCount }}</span>
+        <span class="mp-stat-sub">OF 21 MEALS · {{ weeklyStats.totalServings }} SERVINGS</span>
+      </div>
+      <div class="mp-stat-sep"></div>
+      <div class="mp-stat">
+        <span class="mp-stat-big">{{ weeklyStats.avgKcal | number: '1.0-0' }}</span>
+        <span class="mp-stat-sub">AVG KCAL / DAY</span>
+      </div>
+      <div class="mp-stat-sep"></div>
+      <div class="mp-stat">
+        <span class="mp-stat-big">{{ weeklyStats.totalProtein | number: '1.0-0' }}g</span>
+        <span class="mp-stat-sub">PROTEIN THIS WEEK</span>
+      </div>
+      <div class="mp-stat-sep"></div>
+      <div class="mp-stat">
+        <span class="mp-stat-big">{{ weeklyStats.totalCarbs | number: '1.0-0' }}g</span>
+        <span class="mp-stat-sub">CARBS</span>
+      </div>
+      <div class="mp-stat-sep"></div>
+      <div class="mp-stat">
+        <span class="mp-stat-big">{{ weeklyStats.totalFat | number: '1.0-0' }}g</span>
+        <span class="mp-stat-sub">FAT</span>
+      </div>
+    </div>
+
+    <div *ngFor="let row of dayRows" class="mp-day-row">
+      <div class="mp-day-info">
+        <div class="mp-day-name">{{ row.dayName }}</div>
+        <div class="mp-day-date">{{ row.dayLabel }}</div>
+        <div class="mp-day-sep"></div>
+        <div class="mp-day-meals">{{ row.filledCount }}/3 MEALS</div>
+        <div *ngIf="row.totalKcal > 0" class="mp-day-kcal">
+          {{ row.totalKcal | number: '1.0-0' }} kcal
+        </div>
+        <div *ngIf="row.totalProtein > 0" class="mp-day-prot">
+          {{ row.totalProtein | number: '1.0-0' }}g protein
+        </div>
+      </div>
+
+      <div class="mp-slots">
+        <div
+          *ngFor="let mt of mealTypes"
+          class="mp-slot"
+          [class.mp-slot-active]="addingDate === row.date && addingMeal === mt"
+          [class.mp-slot-drag-over]="dragOverDate === row.date && dragOverMeal === mt"
+          (dragover)="onDragOver($event, row.date, mt)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onDrop($event, row.date, mt)"
+        >
+          <div *ngIf="row.entries[mt]" class="mp-card">
+            <button class="mp-card-del" (click)="removeEntry(row.entries[mt]!)">✕</button>
+            <div class="mp-card-top-bar" [style.background]="mealColor(mt)"></div>
+            <div class="mp-card-meal-label">
+              <span class="mp-card-dot" [style.background]="mealColor(mt)"></span>
+              {{ mealLabels[mt] | uppercase }}
+            </div>
+            <img
+              *ngIf="row.entries[mt]!.recipeImageUrl"
+              [src]="row.entries[mt]!.recipeImageUrl"
+              [alt]="row.entries[mt]!.recipeName"
+              class="mp-card-img"
+            />
+            <div class="mp-card-body">
+              <div class="mp-card-name">{{ row.entries[mt]!.recipeName }}</div>
+              <div class="mp-card-meta">
+                {{ row.entries[mt]!.recipePrepTime + row.entries[mt]!.recipeCookTime }} min
+                <span *ngIf="row.entries[mt]!.calories">
+                  · {{ row.entries[mt]!.calories | number: '1.0-0' }} kcal</span
+                >
+                <span *ngIf="row.entries[mt]!.protein">
+                  · {{ row.entries[mt]!.protein | number: '1.0-0' }}g P</span
+                >
+              </div>
+              <div class="mp-card-sv-row">
+                <button
+                  class="mp-sv-btn"
+                  (click)="adjustServings(row.entries[mt]!, -1)"
+                  [disabled]="row.entries[mt]!.servings <= 1"
+                >
+                  −
+                </button>
+                <span class="mp-sv-label"
+                  >{{ row.entries[mt]!.servings }} SERVING{{
+                    row.entries[mt]!.servings !== 1 ? 'S' : ''
+                  }}</span
+                >
+                <button class="mp-sv-btn" (click)="adjustServings(row.entries[mt]!, 1)">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div
+            *ngIf="!row.entries[mt]"
+            class="mp-empty"
+            role="button"
+            tabindex="0"
+            (click)="startAdding(row.date, mt)"
+            (keydown.enter)="startAdding(row.date, mt)"
+            (keydown.space)="startAdding(row.date, mt)"
+          >
+            <span class="mp-empty-label">
+              <span class="mp-empty-dot" [style.background]="mealColor(mt)"></span>
+              {{ mealLabels[mt] | uppercase }}
+            </span>
+            <span class="mp-empty-plus">+</span>
+            <span class="mp-empty-hint">
+              {{
+                addingDate === row.date && addingMeal === mt
+                  ? 'Pick recipe →'
+                  : 'Drag or click a recipe'
+              }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <aside class="mp-library">
+    <div class="mp-lib-hd">
+      <div>
+        <div class="mp-lib-eyebrow">
+          {{
+            addingDate
+              ? 'CLICK TO ADD · ' + mealLabels[addingMeal] + ' · ' + addingDate
+              : 'DRAG INTO THE WEEK'
+          }}
+        </div>
+        <h2 class="mp-lib-title">Recipe library</h2>
+      </div>
+      <span class="mp-lib-count">{{ libraryTotalElements }}</span>
+    </div>
+
+    <div class="mp-lib-sort">
+      <span class="mp-lib-sort-label">SORT</span>
+      <select class="mp-lib-sort-sel" [(ngModel)]="librarySort" (change)="librarySortChanged()">
+        <option value="new">Most recent</option>
+        <option value="cal">Lowest cal</option>
+        <option value="quick">Quickest</option>
+      </select>
+    </div>
+
+    <div class="mp-lib-search">
+      <input
+        placeholder="Search…"
+        [(ngModel)]="librarySearch"
+        (input)="librarySearchChanged()"
+        class="mp-lib-search-input"
+      />
+    </div>
+
+    <div class="mp-lib-list">
+      <button
+        *ngFor="let r of libraryRecipes"
+        class="mp-lib-card"
+        [class.mp-lib-card-active]="!!addingDate"
+        draggable="true"
+        (dragstart)="onDragStart($event, r)"
+        (click)="addFromLibrary(r)"
+      >
+        <div class="mp-lib-img-wrap">
+          <img *ngIf="r.imageUrl" [src]="r.imageUrl" [alt]="r.name" class="mp-lib-img" />
+          <div *ngIf="!r.imageUrl" class="mp-lib-img mp-lib-placeholder"></div>
+        </div>
+        <div class="mp-lib-info">
+          <div class="mp-lib-meta">
+            <span *ngIf="r.cuisine">{{ r.cuisine | uppercase }} · </span
+            >{{ r.prepTime + r.cookTime }} MIN
+          </div>
+          <div class="mp-lib-name">{{ r.name }}</div>
+          <div class="mp-lib-macros">
+            <span *ngIf="r.caloriesPerServing"
+              >{{ r.caloriesPerServing | number: '1.0-0' }} kcal</span
+            >
+            <span *ngIf="r.protein"> · P {{ r.protein | number: '1.0-0' }}g</span>
+          </div>
+        </div>
+      </button>
+    </div>
+
+    <div *ngIf="libraryTotalPages > 1" class="mp-lib-pager">
+      <button class="mp-lib-pg-btn" (click)="libraryPrev()" [disabled]="libraryPage === 0">
+        ‹
+      </button>
+      <span class="mp-lib-pg-label">{{ libraryPage + 1 }} / {{ libraryTotalPages }}</span>
+      <button
+        class="mp-lib-pg-btn"
+        (click)="libraryNext()"
+        [disabled]="libraryPage >= libraryTotalPages - 1"
+      >
+        ›
+      </button>
+    </div>
+  </aside>
+</div>

@@ -1,0 +1,28 @@
+<article class="card" (click)="clicked.emit(recipe)">
+  <div class="card-media">
+    <img *ngIf="recipe.imageUrl" [src]="recipe.imageUrl" [alt]="recipe.name" loading="lazy" />
+    <div
+      *ngIf="!recipe.imageUrl"
+      class="card-placeholder"
+      [style.background]="placeholderColor()"
+    ></div>
+    <span class="card-time">{{ totalTime }} min</span>
+  </div>
+  <div class="card-body">
+    <div class="card-meta-top">
+      {{ recipe.cuisine || recipe.categoryName
+      }}<ng-container *ngIf="recipe.difficulty"> · {{ recipe.difficulty }}</ng-container>
+    </div>
+    <h3 class="card-title">{{ recipe.name }}</h3>
+    <p *ngIf="large" class="card-blurb">{{ recipe.blurb }}</p>
+    <div class="card-foot">
+      <span class="stars"
+        >★ {{ recipe.avgRating ? (recipe.avgRating | number: '1.1-1') : '—' }}</span
+      >
+      <span>{{ recipe.caloriesPerServing | number: '1.0-0' }} kcal/srv</span>
+    </div>
+    <div *ngIf="large && recipe.tags?.length" style="margin-top: 6px">
+      <span *ngFor="let t of recipe.tags.slice(0, 3)" class="card-tag">{{ t }}</span>
+    </div>
+  </div>
+</article>

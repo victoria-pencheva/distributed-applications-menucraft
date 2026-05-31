@@ -1,0 +1,89 @@
+<ng-container *ngIf="isMobile$ | async; else desktopNav">
+  <header class="topbar" style="justify-content: space-between">
+    <a routerLink="/recipes" class="brand">
+      <img src="logo.png" class="brand-logo" alt="MenuCraft" />
+    </a>
+    <ng-container *ngIf="currentUser$ | async as user; else guestMobileHamburger">
+      <button mat-icon-button [matMenuTriggerFor]="mobileMenu">☰</button>
+      <mat-menu #mobileMenu="matMenu">
+        <button mat-menu-item routerLink="/recipes">Recipes</button>
+        <button mat-menu-item routerLink="/categories">Categories</button>
+        <button mat-menu-item routerLink="/ingredients">Ingredients</button>
+        <button mat-menu-item routerLink="/meal-plan">Meal Plan</button>
+        <button mat-menu-item routerLink="/pantry">Pantry</button>
+        <button mat-menu-item routerLink="/shopping-list">Shopping List</button>
+        <button mat-menu-item disabled>{{ user.username }}</button>
+        <button mat-menu-item (click)="logout()">Logout</button>
+      </mat-menu>
+    </ng-container>
+    <ng-template #guestMobileHamburger>
+      <button mat-icon-button [matMenuTriggerFor]="guestMenu">☰</button>
+      <mat-menu #guestMenu="matMenu">
+        <button mat-menu-item routerLink="/login">Login</button>
+        <button mat-menu-item routerLink="/register">Register</button>
+      </mat-menu>
+    </ng-template>
+  </header>
+
+  <div *ngIf="isRecipesRoute" class="mobile-search-bar">
+    <input
+      class="topbar-search-input"
+      style="width: 100%"
+      placeholder="Search recipes…"
+      [(ngModel)]="searchQuery"
+      (ngModelChange)="onSearch()"
+    />
+  </div>
+</ng-container>
+
+<ng-template #desktopNav>
+  <header class="topbar">
+    <a routerLink="/recipes" class="brand">
+      <img src="logo.png" class="brand-logo" alt="MenuCraft" />
+      <div class="brand-col">
+        <span class="brand-name">MenuCraft</span>
+        <span class="brand-tag">cook with intention</span>
+      </div>
+    </a>
+
+    <nav class="topnav">
+      <a routerLink="/recipes" routerLinkActive="topnav-on" class="topnav-item">Recipes</a>
+      <a routerLink="/categories" routerLinkActive="topnav-on" class="topnav-item">Categories</a>
+      <a routerLink="/ingredients" routerLinkActive="topnav-on" class="topnav-item">Ingredients</a>
+      <a routerLink="/meal-plan" routerLinkActive="topnav-on" class="topnav-item">Meal Plan</a>
+      <a routerLink="/pantry" routerLinkActive="topnav-on" class="topnav-item">
+        Pantry <span *ngIf="pantryCount > 0" class="pill">{{ pantryCount }}</span>
+      </a>
+      <a routerLink="/shopping-list" routerLinkActive="topnav-on" class="topnav-item"
+        >Shopping List</a
+      >
+    </nav>
+
+    <div *ngIf="isRecipesRoute" class="topbar-search">
+      <input
+        class="topbar-search-input"
+        placeholder="Search recipes…"
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="onSearch()"
+      />
+    </div>
+
+    <div class="topnav-right">
+      <ng-container *ngIf="currentUser$ | async as user; else guestLinks">
+        <div class="avatar">{{ initials(user.username) }}</div>
+        <button class="btn-ghost" style="padding: 6px 14px; font-size: 13px" (click)="logout()">
+          Logout
+        </button>
+      </ng-container>
+      <ng-template #guestLinks>
+        <a routerLink="/login" class="topnav-item">Login</a>
+        <a
+          routerLink="/register"
+          class="btn-primary"
+          style="padding: 6px 14px; font-size: 13px; text-decoration: none"
+          >Register</a
+        >
+      </ng-template>
+    </div>
+  </header>
+</ng-template>

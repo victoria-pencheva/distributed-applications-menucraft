@@ -1,0 +1,47 @@
+<div *ngIf="category" class="det-wrap">
+  <div class="det-breadcrumb">
+    <a routerLink="/categories">Categories</a>
+    <span>›</span>
+    <span>{{ category.name }}</span>
+  </div>
+
+  <div
+    class="det-hero-img"
+    *ngIf="category.imageUrl"
+    [style.backgroundImage]="'url(' + category.imageUrl + ')'"
+  ></div>
+
+  <div class="det-header">
+    <div class="det-header-left">
+      <h1 class="det-title">{{ category.name }}</h1>
+      <p *ngIf="category.description" class="det-desc">{{ category.description }}</p>
+    </div>
+    <div class="det-actions">
+      <a routerLink="/categories" class="btn-ghost">← Back</a>
+      <ng-container *ngIf="isAdmin">
+        <a [routerLink]="['/categories', category.id, 'edit']" class="admin-btn-edit">Edit</a>
+        <button class="admin-btn-del" (click)="delete()">Delete</button>
+      </ng-container>
+    </div>
+  </div>
+
+  <div *ngIf="recipes.length > 0">
+    <h2 class="det-section-title">
+      {{ recipes.length }} {{ recipes.length === 1 ? 'Recipe' : 'Recipes' }}
+    </h2>
+    <div class="grid">
+      <app-recipe-card *ngFor="let r of recipes" [recipe]="r" (clicked)="selectedRecipe = r">
+      </app-recipe-card>
+    </div>
+  </div>
+
+  <div *ngIf="recipes.length === 0" class="det-empty">No recipes in this category yet.</div>
+</div>
+
+<app-recipe-preview
+  *ngIf="selectedRecipe"
+  [recipe]="selectedRecipe"
+  (close)="selectedRecipe = null"
+  (openFull)="openRecipe($event)"
+>
+</app-recipe-preview>
